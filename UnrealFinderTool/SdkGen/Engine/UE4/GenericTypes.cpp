@@ -269,7 +269,7 @@ UEProperty::Info UEProperty::GetInfo() const
 	return { PropertyType::Unknown };
 }
 
-UEObject& UEObject::GetPackageObject() const
+UEObject UEObject::GetPackageObject() const
 {
 	// Package Is The Last Outer
 	if (!package.Empty())
@@ -281,7 +281,7 @@ UEObject& UEObject::GetPackageObject() const
 	return UEObject(package);
 }
 
-UEClass& UEObject::GetClass() const
+UEClass UEObject::GetClass() const
 {
 	if (objClass.Empty())
 	{
@@ -296,7 +296,7 @@ UEClass& UEObject::GetClass() const
 	return UEClass(objClass);
 }
 
-UEObject& UEObject::GetOuter() const
+UEObject UEObject::GetOuter() const
 {
 	/*
 	if (objObject.Empty())
