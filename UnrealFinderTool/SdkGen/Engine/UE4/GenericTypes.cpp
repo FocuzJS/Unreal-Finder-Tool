@@ -20,50 +20,41 @@ bool UEObject::IsA(const std::string& typeName) const
 	return false;
 }
 
-void* UEObject::GetAddress() const
+bool UEObject::IsValid() const
 {
-	return reinterpret_cast<PVOID>(Object.ObjAddress);
+	return Object.ObjAddress != NULL && Object.VfTable != NULL && (Object.Name.ComparisonIndex > 0 && size_t(Object.Name.ComparisonIndex) <= NamesStore().GetNamesNum());
 }
 
-UEObject UEObject::GetPackageObject() const
+size_t UEObject::GetIndex() const
 {
-	// Package Is The Last Outer
-	if (!package.Empty())
-		return UEObject(package);
-
-	for (UEObject outer = GetOuter(); outer.IsValid(); outer = outer.GetOuter())
-	{
-		package = outer.Object;
-	}
-
-	return UEObject(package);
+	return Object.InternalIndex;
 }
 
-std::string UEObject::GetFullName() const
+uintptr_t UEObject::GetAddress() const
 {
-	if (!fullName.empty())
-		return fullName;
+	return Object.ObjAddress;
+}
 
-	auto cClass = GetClass();
-	if (cClass.IsValid())
+std::string UEObject::GetName() const
+{
+	if (!objName.empty())
+		return objName;
+
+	auto name = NamesStore().GetById(Object.Name.ComparisonIndex);
+	if (!name.empty() && Object.Name.Number > 0)
 	{
-		std::string temp;
-
-		for (auto outer = GetOuter(); outer.IsValid(); outer = outer.GetOuter())
-		{
-			temp.insert(0, outer.GetName() + ".");
-		}
-
-		std::string name = cClass.GetName();
-		name += " ";
-		name += temp;
-		name += GetName();
-
-		fullName = name;
-		return fullName;
+		name += '_' + std::to_string(Object.Name.Number);
 	}
 
-	return std::string("(null)");
+	auto pos = name.rfind('/');
+	if (pos == std::string::npos)
+	{
+		objName = name;
+		return name;
+	}
+
+	objName = name.substr(pos + 1);
+	return objName;
 }
 
 std::string UEObject::GetNameCPP() const
@@ -101,6 +92,31 @@ std::string UEObject::GetNameCPP() const
 	nameCpp = name;
 
 	return name;
+}
+
+std::string UEObject::GetFullName() const
+{
+	if (!fullName.empty())
+		return fullName;
+
+	auto cClass = GetClass();
+	if (cClass.IsValid())
+	{
+		std::string temp;
+
+		for (auto outer = GetOuter(); outer.IsValid(); outer = outer.GetOuter())
+			temp.insert(0, outer.GetName() + ".");
+
+		std::string name = cClass.GetName();
+		name += " ";
+		name += temp;
+		name += GetName();
+
+		fullName = name;
+		return fullName;
+	}
+
+	return std::string("(null)");
 }
 
 UEProperty::Info UEProperty::GetInfo() const
@@ -253,17 +269,19 @@ UEProperty::Info UEProperty::GetInfo() const
 	return { PropertyType::Unknown };
 }
 
-bool UEObject::IsValid() const
+UEObject& UEObject::GetPackageObject() const
 {
-	return Object.ObjAddress != NULL && Object.VfTable != NULL && (Object.Name.ComparisonIndex > 0 && size_t(Object.Name.ComparisonIndex) <= NamesStore().GetNamesNum());
+	// Package Is The Last Outer
+	if (!package.Empty())
+		return UEObject(package);
+
+	for (UEObject outer = GetOuter(); outer.IsValid(); outer = outer.GetOuter())
+		package = outer.Object;
+
+	return UEObject(package);
 }
 
-size_t UEObject::GetIndex() const
-{
-	return Object.InternalIndex;
-}
-
-UEClass UEObject::GetClass() const
+UEClass& UEObject::GetClass() const
 {
 	if (objClass.Empty())
 	{
@@ -278,7 +296,7 @@ UEClass UEObject::GetClass() const
 	return UEClass(objClass);
 }
 
-UEObject UEObject::GetOuter() const
+UEObject& UEObject::GetOuter() const
 {
 	/*
 	if (objObject.Empty())
@@ -307,26 +325,10 @@ UEObject UEObject::GetOuter() const
 	return UEObject(objOuter);
 }
 
-std::string UEObject::GetName() const
+void UEObject::ReadInformation()
 {
-	if (!objName.empty())
-		return objName;
+	// Just to fill all UObject variables
 
-	auto name = NamesStore().GetById(Object.Name.ComparisonIndex);
-	if (!name.empty() && Object.Name.Number > 0)
-	{
-		name += '_' + std::to_string(Object.Name.Number);
-	}
-
-	auto pos = name.rfind('/');
-	if (pos == std::string::npos)
-	{
-		objName = name;
-		return name;
-	}
-
-	objName = name.substr(pos + 1);
-	return objName;
 }
 
 UEClass UEObject::StaticClass()

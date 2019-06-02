@@ -46,7 +46,9 @@ public:
 
 	UEObject GetPackageObject() const;
 
-	void* GetAddress() const;
+	uintptr_t GetAddress() const;
+
+	void ReadInformation();
 
 	template<typename Base>
 	Base Cast() const
@@ -61,7 +63,6 @@ public:
 	bool IsA(const std::string& typeName) const;
 
 	static UEClass StaticClass();
-
 };
 
 namespace std
@@ -71,7 +72,7 @@ namespace std
 	{
 		size_t operator()(const UEObject& obj) const noexcept
 		{
-			return std::hash<void*>()(obj.GetAddress());
+			return std::hash<uintptr_t>()(obj.GetAddress());
 		}
 	};
 }

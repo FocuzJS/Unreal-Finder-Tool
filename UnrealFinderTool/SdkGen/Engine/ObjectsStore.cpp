@@ -151,10 +151,9 @@ bool ObjectsStore::ReadUObjectArrayNormal()
 			skipCount = 0;
 
 			auto curObject = std::make_unique<UEObject>();
-			ReadUObject(dwUObject, uObject, *curObject);
 
 			// Skip bad object in GObjects array
-			if (!IsValidUObject(*curObject))
+			if (!ReadUObject(dwUObject, uObject, *curObject) || !IsValidUObject(*curObject))
 			{
 				++skipCount;
 				continue;
@@ -175,6 +174,9 @@ bool ObjectsStore::ReadUObject(const uintptr_t uObjectAddress, JsonStruct& uObje
 
 	retUObj.Object = uObject;
 	retUObj.Object.ObjAddress = uObjectAddress;
+
+	retUObj.ReadInformation();
+
 	return true;
 }
 
@@ -196,13 +198,20 @@ size_t ObjectsStore::GetObjectsNum() const
 	return gInfo.Count;
 }
 
-UEObject& ObjectsStore::GetById(const size_t id) const
+UEObject& ObjectsStore::GetByIndex(const size_t index) const
 {
-	return *GObjObjects[id];
+	return *GObjObjects[index];
 }
 
 UEClass ObjectsStore::FindClass(const std::string& name) const
 {
+	auto findIt = std::find_if(GObjObjects.begin(), GObjObjects.end(), [&](const std::unique_ptr<UEObject>& obj) -> bool { return obj->GetFullName() == name; });
+
+	if (findIt != GObjObjects.end())
+		return (*findIt)->Cast<UEClass>();
+
+	return UEClass();
+	/*
 	for (const UEObject& obj : *this)
 	{
 		if (obj.GetFullName() == name)
@@ -211,6 +220,7 @@ UEClass ObjectsStore::FindClass(const std::string& name) const
 		}
 	}
 	return UEClass();
+	*/
 }
 #pragma endregion
 

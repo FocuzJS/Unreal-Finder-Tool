@@ -48,9 +48,9 @@ public:
 	/// <summary>
 	/// Gets the object by id.
 	/// </summary>
-	/// <param name="id">The identifier.</param>
+	/// <param name="index">The identifier.</param>
 	/// <returns>The object.</returns>
-	UEObject& GetById(size_t id) const;
+	UEObject& GetByIndex(size_t index) const;
 	/// <summary>
 	/// Searches for the first class with the given name.
 	/// </summary>
