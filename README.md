@@ -27,6 +27,13 @@ Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/re
 ![ui_3](/images/cfg_1.png)
 
 # Change Log
+##### 03-07-2019
+- Improve `Sdk Generator`.
+  - `Sdk Generator` now significantly faster
+  - Some organization for `Sdk Generator` code.
+- `Class Finder` now can search for name of address.
+  - Put address of instance and the tool will give you instance `class name`
+
 ##### 01-07-2019
 - Support `GObjects Chunks`.
   - Some games use `GObject's chunks` as same as `GNames`, so i just support it.
