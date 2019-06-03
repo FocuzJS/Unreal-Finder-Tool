@@ -16,8 +16,8 @@ class UEClass;
 class UEObject
 {
 protected:
-	mutable UObject objClass;
-	mutable uintptr_t packageAddress = 0;
+	mutable UClass objClass;
+	mutable uintptr_t packageAddress = NULL;
 	mutable std::string objName, fullName, nameCpp;
 
 public:
@@ -26,25 +26,22 @@ public:
 	UEObject() = default;
 	UEObject(const UObject object) : Object(object) { }
 
+	uintptr_t GetAddress() const;
 	bool IsValid() const;
 	size_t GetIndex() const;
-	uintptr_t GetAddress() const;
-
-	std::string GetName() const;
-	std::string GetNameCPP() const;
-	std::string GetFullName() const;
 
 	UEClass GetClass() const;
 	UEObject& GetOuter() const;
 	UEObject& GetPackageObject() const;
 
+	std::string GetName() const;
+	std::string GetFullName() const;
+	std::string GetNameCPP() const;
+
 	template<typename Base>
-	Base Cast(uintptr_t newObjAddress = 0) const
+	Base Cast() const
 	{
-		Base tmp;
-		tmp.UEObject::Object = Object;
-		if (newObjAddress != 0) tmp.UEObject::Object.ObjAddress = newObjAddress;
-		return std::move(tmp);
+		return Base(Object);
 	}
 
 	template<typename T>
