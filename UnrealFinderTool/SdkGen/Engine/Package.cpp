@@ -46,7 +46,8 @@ void Package::Process(std::unordered_map<UEObject, bool>& processedObjects)
 	for (size_t i = 0; i < ObjectsStore().GetObjectsNum(); ++i)
 	{
 		const UEObject& obj = ObjectsStore().GetByIndex(i);
-		const auto package = obj.GetPackageObject();
+		const UEObject& package = obj.GetPackageObject();
+
 		if (packageObj == package)
 		{
 			if (obj.IsA<UEEnum>())
@@ -68,8 +69,8 @@ void Package::Process(std::unordered_map<UEObject, bool>& processedObjects)
 				GeneratePrerequisites(obj, processedObjects);
 			}
 
-			static int is_a_sleep_counter = 0;
-			Utils::SleepEvery(1, is_a_sleep_counter, Utils::Settings.Parallel.SleepEvery);
+			static int process_sleep_counter = 0;
+			Utils::SleepEvery(1, process_sleep_counter, Utils::Settings.Parallel.SleepEvery);
 		}
 	}
 }
@@ -117,16 +118,12 @@ bool Package::AddDependency(const UEObject& package) const
 void Package::GeneratePrerequisites(const UEObject& obj, std::unordered_map<UEObject, bool>& processedObjects)
 {
 	if (!obj.IsValid())
-	{
 		return;
-	}
 
 	const auto isClass = obj.IsA<UEClass>();
 	const auto isScriptStruct = obj.IsA<UEScriptStruct>();
 	if (!isClass && !isScriptStruct)
-	{
 		return;
-	}
 
 	const auto name = obj.GetName();
 	if (name.find("Default__") != std::string::npos
@@ -138,29 +135,24 @@ void Package::GeneratePrerequisites(const UEObject& obj, std::unordered_map<UEOb
 
 	processedObjects[obj] |= false;
 
-	auto classPackage = obj.GetPackageObject();
+	auto& classPackage = obj.GetPackageObject();
 	if (!classPackage.IsValid())
-	{
 		return;
-	}
 
 	if (AddDependency(classPackage))
-	{
 		return;
-	}
 
 	if (!processedObjects[obj])
 	{
 		processedObjects[obj] = true;
 
-		auto outer = obj.GetOuter();
+		auto& outer = obj.GetOuter();
 		if (outer.IsValid() && outer != obj)
 		{
 			GeneratePrerequisites(outer, processedObjects);
 		}
 
 		auto structObj = obj.Cast<UEStruct>();
-
 		auto super = structObj.GetSuper();
 		if (super.IsValid() && super != obj)
 		{
