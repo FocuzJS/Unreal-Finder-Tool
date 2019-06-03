@@ -13,6 +13,7 @@ bool JsonReflector::ReadJsonFile(const std::string& fileName, void* jsonObj)
 {
 	// read a JSON file
 	std::ifstream i(fileName.c_str());
+	if (!i.good()) return false;
 	i >> *reinterpret_cast<nlohmann::json*>(jsonObj);
 	return true;
 }

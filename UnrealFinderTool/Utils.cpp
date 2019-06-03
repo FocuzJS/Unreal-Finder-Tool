@@ -15,21 +15,21 @@ bool Utils::LoadJsonCore()
 	// Read core GNames
 	if (!JsonReflector::ReadAndLoadFile("Config\\Core\\GNames.json"))
 	{
-		OutputDebugString("Can't read GNames file.");
+		MessageBox(nullptr, "Can't read GNames file.", "Error", MB_OK);
 		return false;
 	}
 
 	// Read core GObjects
 	if (!JsonReflector::ReadAndLoadFile("Config\\Core\\GObjects.json"))
 	{
-		OutputDebugString("Can't read GObject file.");
+		MessageBox(nullptr, "Can't read GObject file.", "Error", MB_OK);
 		return false;
 	}
 
 	// Read core CoreStructs
 	if (!JsonReflector::ReadAndLoadFile("Config\\Core\\CoreStructs.json"))
 	{
-		OutputDebugString("Can't read CoreStructs file.");
+		MessageBox(nullptr, "Can't read CoreStructs file.", "Error", MB_OK);
 		return false;
 	}
 
@@ -40,7 +40,7 @@ bool Utils::LoadSettings()
 {
 	if (!JsonReflector::ReadJsonFile("Config\\Settings.json"))
 	{
-		OutputDebugString("Can't read Settings file.");
+		MessageBox(nullptr, "Can't read Settings file.", "Error", MB_OK);
 		return false;
 	}
 
