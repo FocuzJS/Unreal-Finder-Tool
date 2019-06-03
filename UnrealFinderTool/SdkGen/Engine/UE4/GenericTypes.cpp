@@ -274,7 +274,10 @@ UEClass UEObject::GetClass() const
 	if (INVALID_POINTER_VALUE(Object.Class))
 		return UEClassEmpty;
 
-	return Cast<UEClass>(Object.Class);
+	if (objClass.Empty())
+		objClass = ObjectsStore().GetByAddress(Object.Class).Object;
+
+	return UEClass(objClass); // Cast<UEClass>(Object.Class);
 }
 
 UEObject& UEObject::GetOuter() const
@@ -293,47 +296,26 @@ UEObject& UEObject::GetOuter() const
 		objObject = uObject;
 	}
 	*/
-	if (outerIndex == -1)
-	{
-		if (INVALID_POINTER_VALUE(Object.Outer))
-			return UEObjectEmpty;
 
-		UObject objOuter;
-		objOuter.ObjAddress = Object.Outer;
-		Utils::MemoryObj->Read<UObject>(objOuter.ObjAddress, objOuter, sizeof(uintptr_t)); // Skip ObjAddress in UObject
-		objOuter.FixPointers(sizeof UObject);
+	if (INVALID_POINTER_VALUE(Object.Outer))
+		return UEObjectEmpty;
 
-		outerIndex = objOuter.InternalIndex;
-	}
-
-	return ObjectsStore().GetByIndex(objOuter.InternalIndex);
+	return ObjectsStore().GetByAddress(Object.Outer);
 }
 
 UEObject& UEObject::GetPackageObject() const
 {
 	// Package Is The Last Outer
-	if (packageIndex == -1)
+
+	if (packageAddress == 0)
 	{
 		UObject package;
 		for (UEObject outer = GetOuter(); outer.IsValid(); outer = outer.GetOuter())
 			package = outer.Object;
-
-		packageIndex = package.InternalIndex;
+		packageAddress = package.ObjAddress;
 	}
 
-	return ObjectsStore().GetByIndex(packageIndex);
-}
-
-void UEObject::ReadInformation()
-{
-	// Just to fill variables
-	tmp.UEIndex = UEIndex;
-	tmp.classIndex = classIndex;
-	tmp.outerIndex = outerIndex;
-	tmp.packageIndex = packageIndex;
-	tmp.objName = objName;
-	tmp.fullName = fullName;
-	tmp.nameCpp = nameCpp;
+	return ObjectsStore().GetByAddress(packageAddress);
 }
 
 UEClass UEObject::StaticClass()
@@ -346,6 +328,7 @@ UEClass UEObject::StaticClass()
 #pragma region UEField
 UEField UEField::GetNext() const
 {
+	ReadObject();
 	if (next.Empty())
 	{
 		if (INVALID_POINTER_VALUE(Object.Next))
@@ -370,6 +353,8 @@ UEClass UEField::StaticClass()
 std::vector<std::string> UEEnum::GetNames() const
 {
 	std::vector<std::string> buffer;
+
+	ReadObject();
 
 	// Get Names
 	uintptr_t dataAddress = Object.Names.Data;
@@ -413,6 +398,7 @@ UEClass UEConst::StaticClass()
 #pragma region UEStruct
 UEStruct UEStruct::GetSuper() const
 {
+	ReadObject();
 	if (superField.Empty())
 	{
 		if (INVALID_POINTER_VALUE(Object.SuperField))
@@ -429,6 +415,7 @@ UEStruct UEStruct::GetSuper() const
 
 UEField UEStruct::GetChildren() const
 {
+	ReadObject();
 	if (children.Empty())
 	{
 		if (INVALID_POINTER_VALUE(Object.Children))
@@ -444,6 +431,7 @@ UEField UEStruct::GetChildren() const
 
 size_t UEStruct::GetPropertySize() const
 {
+	ReadObject();
 	return Object.PropertySize;
 }
 
@@ -465,6 +453,7 @@ UEClass UEScriptStruct::StaticClass()
 #pragma region UEFunction
 UEFunctionFlags UEFunction::GetFunctionFlags() const
 {
+	ReadObject();
 	return static_cast<UEFunctionFlags>(Object.FunctionFlags);
 }
 
@@ -486,21 +475,25 @@ UEClass UEClass::StaticClass()
 #pragma region UEProperty
 size_t UEProperty::GetArrayDim() const
 {
+	ReadObject();
 	return Object.ArrayDim;
 }
 
 size_t UEProperty::GetElementSize() const
 {
+	ReadObject();
 	return Object.ElementSize;
 }
 
 UEPropertyFlags UEProperty::GetPropertyFlags() const
 {
+	ReadObject();
 	return static_cast<UEPropertyFlags>(Object.PropertyFlags.A);
 }
 
 size_t UEProperty::GetOffset() const
 {
+	ReadObject();
 	return Object.Offset;
 }
 
@@ -675,6 +668,7 @@ UEClass UEObjectProperty::StaticClass()
 #pragma region UEClassProperty
 UEClass UEClassProperty::GetMetaClass() const
 {
+	ReadObject();
 	if (metaClass.Empty())
 	{
 		if (INVALID_POINTER_VALUE(Object.MetaClass))
@@ -703,6 +697,7 @@ UEClass UEClassProperty::StaticClass()
 #pragma region UEInterfaceProperty
 UEClass UEInterfaceProperty::GetInterfaceClass() const
 {
+	ReadObject();
 	if (interfaceClass.Empty())
 	{
 		if (INVALID_POINTER_VALUE(Object.InterfaceClass))
@@ -770,6 +765,7 @@ UEClass UEAssetObjectProperty::StaticClass()
 #pragma region UEAssetClassProperty
 UEClass UEAssetClassProperty::GetMetaClass() const
 {
+	ReadObject();
 	if (metaClass.Empty())
 	{
 		if (INVALID_POINTER_VALUE(Object.MetaClass))
@@ -865,6 +861,7 @@ UEClass UETextProperty::StaticClass()
 #pragma region UEArrayProperty
 UEProperty UEArrayProperty::GetInner() const
 {
+	ReadObject();
 	if (inner.Empty())
 	{
 		if (INVALID_POINTER_VALUE(Object.Inner))
@@ -901,6 +898,7 @@ UEClass UEArrayProperty::StaticClass()
 #pragma region UEMapProperty
 UEProperty UEMapProperty::GetKeyProperty() const
 {
+	ReadObject();
 	if (keyProp.Empty())
 	{
 		if (INVALID_POINTER_VALUE(Object.KeyProp))
@@ -916,6 +914,7 @@ UEProperty UEMapProperty::GetKeyProperty() const
 
 UEProperty UEMapProperty::GetValueProperty() const
 {
+	ReadObject();
 	if (valueProp.Empty())
 	{
 		if (INVALID_POINTER_VALUE(Object.ValueProp))
@@ -953,6 +952,7 @@ UEClass UEMapProperty::StaticClass()
 #pragma region UEDelegateProperty
 UEFunction UEDelegateProperty::GetSignatureFunction() const
 {
+	ReadObject();
 	if (signatureFunction.Empty())
 	{
 		if (INVALID_POINTER_VALUE(Object.SignatureFunction))
@@ -981,6 +981,7 @@ UEClass UEDelegateProperty::StaticClass()
 #pragma region UEMulticastDelegateProperty
 UEFunction UEMulticastDelegateProperty::GetSignatureFunction() const
 {
+	ReadObject();
 	if (signatureFunction.Empty())
 	{
 		if (INVALID_POINTER_VALUE(Object.SignatureFunction))
@@ -1009,6 +1010,7 @@ UEClass UEMulticastDelegateProperty::StaticClass()
 #pragma region UEEnumProperty
 UENumericProperty UEEnumProperty::GetUnderlyingProperty() const
 {
+	ReadObject();
 	if (underlyingProp.Empty())
 	{
 		if (INVALID_POINTER_VALUE(Object.UnderlyingProp))
@@ -1024,6 +1026,7 @@ UENumericProperty UEEnumProperty::GetUnderlyingProperty() const
 
 UEEnum UEEnumProperty::GetEnum() const
 {
+	ReadObject();
 	if (Enum.Empty())
 	{
 		if (INVALID_POINTER_VALUE(Object.Enum))
@@ -1057,6 +1060,7 @@ bool UEByteProperty::IsEnum() const
 
 UEEnum UEByteProperty::GetEnum() const
 {
+	ReadObject();
 	if (enumProperty.Empty())
 	{
 		if (INVALID_POINTER_VALUE(Object.Enum))
@@ -1126,21 +1130,25 @@ std::array<int, 2> UEBoolProperty::GetMissingBitsCount(const UEBoolProperty & ot
 
 uint8_t UEBoolProperty::GetFieldSize() const
 {
+	ReadObject();
 	return Object.FieldSize;
 }
 
 uint8_t UEBoolProperty::GetByteOffset() const
 {
+	ReadObject();
 	return Object.ByteOffset;
 }
 
 uint8_t UEBoolProperty::GetByteMask() const
 {
+	ReadObject();
 	return Object.ByteMask;
 }
 
 uint8_t UEBoolProperty::GetFieldMask() const
 {
+	ReadObject();
 	return Object.FieldMask;
 }
 

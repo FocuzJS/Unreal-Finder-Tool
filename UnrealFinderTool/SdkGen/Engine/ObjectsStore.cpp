@@ -6,7 +6,7 @@
 #include "NamesStore.h"
 
 GObjectInfo ObjectsStore::gInfo;
-UnsortedMap<size_t, std::unique_ptr<UEObject>> ObjectsStore::GObjObjects;
+UnsortedMap<uintptr_t, std::unique_ptr<UEObject>> ObjectsStore::GObjObjects;
 int ObjectsStore::maxZeroAddress = 150;
 
 #pragma region ObjectsStore
@@ -106,17 +106,16 @@ bool ObjectsStore::ReadUObjectArrayPnP()
 			skipCount = 0;
 
 			auto curObject = std::make_unique<UEObject>();
-			ReadUObject(dwUObject, uObject, *curObject);
 
 			// Skip bad object in GObjects array
-			if (!IsValidUObject(*curObject))
+			if (ReadUObject(dwUObject, uObject, *curObject) || !IsValidUObject(*curObject))
 			{
 				++skipCount;
 				continue;
 			}
 			skipCount = 0;
 
-			GObjObjects.push_back(std::make_pair(curObject->Object.InternalIndex, std::move(curObject)));
+			GObjObjects.push_back(std::make_pair(dwUObject, std::move(curObject)));
 			++gInfo.Count;
 		}
 	}
@@ -160,7 +159,7 @@ bool ObjectsStore::ReadUObjectArrayNormal()
 			}
 			skipCount = 0;
 
-			GObjObjects.push_back(std::make_pair(curObject->Object.InternalIndex, std::move(curObject)));
+			GObjObjects.push_back(std::make_pair(dwUObject, std::move(curObject)));
 			++gInfo.Count;
 		}
 	}
@@ -174,8 +173,6 @@ bool ObjectsStore::ReadUObject(const uintptr_t uObjectAddress, JsonStruct& uObje
 
 	retUObj.Object = uObject;
 	retUObj.Object.ObjAddress = uObjectAddress;
-
-	retUObj.ReadInformation();
 
 	return true;
 }
@@ -200,7 +197,12 @@ size_t ObjectsStore::GetObjectsNum() const
 
 UEObject& ObjectsStore::GetByIndex(const size_t index) const
 {
-	return *GObjObjects.Find(index);
+	return *GObjObjects[index].second;
+}
+
+UEObject& ObjectsStore::GetByAddress(const uintptr_t objAddress) const
+{
+	return *GObjObjects.Find(objAddress);
 }
 
 UEClass ObjectsStore::FindClass(const std::string& name) const

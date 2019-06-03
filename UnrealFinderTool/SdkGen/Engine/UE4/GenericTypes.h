@@ -16,17 +16,15 @@ class UEClass;
 class UEObject
 {
 protected:
-	// This vars to speedup
-	mutable int64_t packageIndex = -1;
+	mutable UObject objClass;
+	mutable uintptr_t packageAddress = 0;
 	mutable std::string objName, fullName, nameCpp;
 
 public:
 	UObject Object;
 
 	UEObject() = default;
-	UEObject(const UObject object) : Object(object)
-	{
-	}
+	UEObject(const UObject object) : Object(object) { }
 
 	bool IsValid() const;
 	size_t GetIndex() const;
@@ -40,17 +38,12 @@ public:
 	UEObject& GetOuter() const;
 	UEObject& GetPackageObject() const;
 
-	void ReadInformation();
-
 	template<typename Base>
-	Base Cast(uintptr_t objAddress = 0) const
+	Base Cast(uintptr_t newObjAddress = 0) const
 	{
 		Base tmp;
-		
 		tmp.UEObject::Object = Object;
-		if (objAddress != 0)
-			tmp.UEObject::Object.ObjAddress = objAddress;
-
+		if (newObjAddress != 0) tmp.UEObject::Object.ObjAddress = newObjAddress;
 		return std::move(tmp);
 	}
 
@@ -87,9 +80,10 @@ public:
 	using UEObject::UEObject;
 	mutable UField Object;
 
-	UEField()
+	void ReadObject() const
 	{
-		Object = UEObject::Object.Cast<UField>();
+		if (Object.Empty())
+			Object = UEObject::Object.Cast<UField>();
 	}
 
 	UEField GetNext() const;
@@ -103,9 +97,10 @@ public:
 	using UEField::UEField;
 	mutable UEnum Object;
 
-	UEEnum()
+	void ReadObject() const
 	{
-		Object = UEObject::Object.Cast<UEnum>();
+		if (Object.Empty())
+			Object = UEObject::Object.Cast<UEnum>();
 	}
 
 	std::vector<std::string> GetNames() const;
@@ -117,8 +112,6 @@ class UEConst : public UEField
 {
 public:
 	using UEField::UEField;
-
-	UEConst() = default;
 
 	std::string GetValue() const;
 
@@ -134,9 +127,10 @@ public:
 	using UEField::UEField;
 	mutable UStruct Object;
 
-	UEStruct()
+	void ReadObject() const
 	{
-		Object = UEObject::Object.Cast<UStruct>();
+		if (Object.Empty())
+			Object = UEObject::Object.Cast<UStruct>();
 	}
 
 	UEStruct GetSuper() const;
@@ -153,8 +147,6 @@ class UEScriptStruct : public UEStruct
 public:
 	using UEStruct::UEStruct;
 
-	UEScriptStruct() = default;
-
 	static UEClass StaticClass();
 };
 
@@ -164,9 +156,10 @@ public:
 	using UEStruct::UEStruct;
 	mutable UFunction Object;
 
-	UEFunction()
+	void ReadObject() const
 	{
-		Object = UEObject::Object.Cast<UFunction>();
+		if (Object.Empty())
+			Object = UEObject::Object.Cast<UFunction>();
 	}
 
 	UEFunctionFlags GetFunctionFlags() const;
@@ -178,11 +171,6 @@ class UEClass : public UEStruct
 {
 public:
 	using UEStruct::UEStruct;
-
-	UEClass()
-	{
-		// CHeck if it's call UEStruct Constructor
-	}
 
 	static UEClass StaticClass();
 };
@@ -223,9 +211,10 @@ public:
 	using UEField::UEField;
 	mutable UProperty Object;
 
-	UEProperty()
+	void ReadObject() const
 	{
-		Object = UEObject::Object.Cast<UProperty>();
+		if (Object.Empty())
+			Object = UEObject::Object.Cast<UProperty>();
 	}
 
 	size_t GetArrayDim() const;
@@ -246,8 +235,6 @@ class UENumericProperty : public UEProperty
 public:
 	using UEProperty::UEProperty;
 
-	UENumericProperty() = default;
-
 	static UEClass StaticClass();
 };
 
@@ -261,9 +248,10 @@ public:
 
 	bool IsEnum() const;
 
-	UEByteProperty()
+	void ReadObject() const
 	{
-		Object = UEObject::Object.Cast<UByteProperty>();
+		if (Object.Empty())
+			Object = UEObject::Object.Cast<UByteProperty>();
 	}
 
 	UEEnum GetEnum() const;
@@ -278,8 +266,6 @@ class UEUInt16Property : public UENumericProperty
 public:
 	using UENumericProperty::UENumericProperty;
 
-	UEUInt16Property() = default;
-
 	UEProperty::Info GetInfo() const;
 
 	static UEClass StaticClass();
@@ -289,8 +275,6 @@ class UEUInt32Property : public UENumericProperty
 {
 public:
 	using UENumericProperty::UENumericProperty;
-
-	UEUInt32Property() = default;
 
 	UEProperty::Info GetInfo() const;
 
@@ -302,8 +286,6 @@ class UEUInt64Property : public UENumericProperty
 public:
 	using UENumericProperty::UENumericProperty;
 
-	UEUInt64Property() = default;
-
 	UEProperty::Info GetInfo() const;
 
 	static UEClass StaticClass();
@@ -313,8 +295,6 @@ class UEInt8Property : public UENumericProperty
 {
 public:
 	using UENumericProperty::UENumericProperty;
-
-	UEInt8Property() = default;
 
 	UEProperty::Info GetInfo() const;
 
@@ -326,8 +306,6 @@ class UEInt16Property : public UENumericProperty
 public:
 	using UENumericProperty::UENumericProperty;
 
-	UEInt16Property() = default;
-
 	UEProperty::Info GetInfo() const;
 
 	static UEClass StaticClass();
@@ -337,8 +315,6 @@ class UEIntProperty : public UENumericProperty
 {
 public:
 	using UENumericProperty::UENumericProperty;
-
-	UEIntProperty() = default;
 
 	UEProperty::Info GetInfo() const;
 
@@ -350,8 +326,6 @@ class UEInt64Property : public UENumericProperty
 public:
 	using UENumericProperty::UENumericProperty;
 
-	UEInt64Property() = default;
-
 	UEProperty::Info GetInfo() const;
 
 	static UEClass StaticClass();
@@ -362,8 +336,6 @@ class UEFloatProperty : public UENumericProperty
 public:
 	using UENumericProperty::UENumericProperty;
 
-	UEFloatProperty() = default;
-
 	UEProperty::Info GetInfo() const;
 
 	static UEClass StaticClass();
@@ -373,8 +345,6 @@ class UEDoubleProperty : public UENumericProperty
 {
 public:
 	using UENumericProperty::UENumericProperty;
-
-	UEDoubleProperty() = default;
 
 	UEProperty::Info GetInfo() const;
 
@@ -387,9 +357,10 @@ public:
 	using UEProperty::UEProperty;
 	mutable UBoolProperty Object;
 
-	UEBoolProperty()
+	void ReadObject() const
 	{
-		Object = UEObject::Object.Cast<UBoolProperty>();
+		if (Object.Empty())
+			Object = UEObject::Object.Cast<UBoolProperty>();
 	}
 
 	bool IsNativeBool() const { return GetFieldMask() == 0xFF; }
@@ -428,9 +399,10 @@ public:
 	using UEProperty::UEProperty;
 	mutable UObjectPropertyBase Object;
 
-	UEObjectPropertyBase()
+	void ReadObject() const
 	{
-		Object = UEObject::Object.Cast<UObjectPropertyBase>();
+		if (Object.Empty())
+			Object = UEObject::Object.Cast<UObjectPropertyBase>();
 	}
 
 	UEClass GetPropertyClass() const;
@@ -442,8 +414,6 @@ class UEObjectProperty : public UEObjectPropertyBase
 {
 public:
 	using UEObjectPropertyBase::UEObjectPropertyBase;
-
-	UEObjectProperty() = default;
 
 	UEProperty::Info GetInfo() const;
 
@@ -458,9 +428,10 @@ public:
 	using UEObjectProperty::UEObjectProperty;
 	mutable UClassProperty Object;
 
-	UEClassProperty()
+	void ReadObject() const
 	{
-		Object = UEObject::Object.Cast<UClassProperty>();
+		if (Object.Empty())
+			Object = UEObject::Object.Cast<UClassProperty>();
 	}
 
 	UEClass GetMetaClass() const;
@@ -478,9 +449,10 @@ public:
 	using UEProperty::UEProperty;
 	mutable UInterfaceProperty Object;
 
-	UEInterfaceProperty()
+	void ReadObject() const
 	{
-		Object = UEObject::Object.Cast<UInterfaceProperty>();
+		if (Object.Empty())
+			Object = UEObject::Object.Cast<UInterfaceProperty>();
 	}
 
 	UEClass GetInterfaceClass() const;
@@ -495,8 +467,6 @@ class UEWeakObjectProperty : public UEObjectPropertyBase
 public:
 	using UEObjectPropertyBase::UEObjectPropertyBase;
 
-	UEWeakObjectProperty() = default;
-
 	UEProperty::Info GetInfo() const;
 
 	static UEClass StaticClass();
@@ -507,8 +477,6 @@ class UELazyObjectProperty : public UEObjectPropertyBase
 public:
 	using UEObjectPropertyBase::UEObjectPropertyBase;
 
-	UELazyObjectProperty() = default;
-
 	UEProperty::Info GetInfo() const;
 
 	static UEClass StaticClass();
@@ -518,8 +486,6 @@ class UEAssetObjectProperty : public UEObjectPropertyBase
 {
 public:
 	using UEObjectPropertyBase::UEObjectPropertyBase;
-
-	UEAssetObjectProperty() = default;
 
 	UEProperty::Info GetInfo() const;
 
@@ -534,9 +500,10 @@ public:
 	using UEAssetObjectProperty::UEAssetObjectProperty;
 	mutable UAssetClassProperty Object;
 
-	UEAssetClassProperty()
+	void ReadObject() const
 	{
-		Object = UEObject::Object.Cast<UAssetClassProperty>();
+		if (Object.Empty())
+			Object = UEObject::Object.Cast<UAssetClassProperty>();
 	}
 
 	UEClass GetMetaClass() const;
@@ -551,8 +518,6 @@ class UENameProperty : public UEProperty
 public:
 	using UEProperty::UEProperty;
 
-	UENameProperty() = default;
-
 	UEProperty::Info GetInfo() const;
 
 	static UEClass StaticClass();
@@ -566,9 +531,10 @@ public:
 	using UEProperty::UEProperty;
 	mutable UStructProperty Object;
 
-	UEStructProperty()
+	void ReadObject() const
 	{
-		Object = UEObject::Object.Cast<UStructProperty>();
+		if (Object.Empty())
+			Object = UEObject::Object.Cast<UStructProperty>();
 	}
 
 	UEScriptStruct GetStruct() const;
@@ -583,8 +549,6 @@ class UEStrProperty : public UEProperty
 public:
 	using UEProperty::UEProperty;
 
-	UEStrProperty() = default;
-
 	UEProperty::Info GetInfo() const;
 
 	static UEClass StaticClass();
@@ -594,8 +558,6 @@ class UETextProperty : public UEProperty
 {
 public:
 	using UEProperty::UEProperty;
-
-	UETextProperty() = default;
 
 	UEProperty::Info GetInfo() const;
 
@@ -610,9 +572,10 @@ public:
 	using UEProperty::UEProperty;
 	mutable UArrayProperty Object;
 
-	UEArrayProperty()
+	void ReadObject() const
 	{
-		Object = UEObject::Object.Cast<UArrayProperty>();
+		if (Object.Empty())
+			Object = UEObject::Object.Cast<UArrayProperty>();
 	}
 
 	UEProperty GetInner() const;
@@ -630,9 +593,10 @@ public:
 	using UEProperty::UEProperty;
 	mutable UMapProperty Object;
 
-	UEMapProperty()
+	void ReadObject() const
 	{
-		Object = UEObject::Object.Cast<UMapProperty>();
+		if (Object.Empty())
+			Object = UEObject::Object.Cast<UMapProperty>();
 	}
 
 	UEProperty GetKeyProperty() const;
@@ -651,9 +615,10 @@ public:
 	using UEProperty::UEProperty;
 	mutable UDelegateProperty Object;
 
-	UEDelegateProperty()
+	void ReadObject() const
 	{
-		Object = UEObject::Object.Cast<UDelegateProperty>();
+		if (Object.Empty())
+			Object = UEObject::Object.Cast<UDelegateProperty>();
 	}
 
 	UEFunction GetSignatureFunction() const;
@@ -671,9 +636,10 @@ public:
 	using UEProperty::UEProperty;
 	mutable UDelegateProperty Object; // DelegateProperty
 
-	UEMulticastDelegateProperty()
+	void ReadObject() const
 	{
-		Object = UEObject::Object.Cast<UDelegateProperty>();
+		if (Object.Empty())
+			Object = UEObject::Object.Cast<UDelegateProperty>();
 	}
 
 	UEFunction GetSignatureFunction() const;
@@ -692,9 +658,10 @@ public:
 	using UEProperty::UEProperty;
 	mutable UEnumProperty Object;
 
-	UEEnumProperty()
+	void ReadObject() const
 	{
-		Object = UEObject::Object.Cast<UEnumProperty>();
+		if (Object.Empty())
+			Object = UEObject::Object.Cast<UEnumProperty>();
 	}
 
 	UENumericProperty GetUnderlyingProperty() const;

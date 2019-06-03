@@ -1,4 +1,7 @@
 #pragma once
+#pragma warning(disable: 4302)
+#pragma warning(disable: 4311)
+
 #include <string>
 #include <windows.h>
 #include "../Utils.h"

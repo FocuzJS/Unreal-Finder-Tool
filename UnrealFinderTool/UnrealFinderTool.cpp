@@ -501,7 +501,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (!Utils::LoadSettings()) return 0;
 	if (!Utils::LoadJsonCore()) return 0;
 
-	UiWindow ui("Unreal Finder Tool. Version: 2.2.0", "CorrMFinder", 380, 578);
+	UiWindow ui("Unreal Finder Tool. Version: 2.2.1", "CorrMFinder", 380, 578);
 	ui.Show(MainUi);
 
 	while (!ui.Closed())

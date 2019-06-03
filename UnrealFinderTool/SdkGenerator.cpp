@@ -103,6 +103,17 @@ GeneratorState SdkGenerator::Start(int* pObjCount, int* pNamesCount, int* pPacka
 /// <param name="path">The path where to create the dumps.</param>
 void SdkGenerator::Dump(const fs::path& path)
 {
+	if (Utils::Settings.SdkGen.DumpNames)
+	{
+		std::ofstream o(path / "NamesDump.txt");
+		tfm::format(o, "Address: 0x%P\n\n", NamesStore::GetAddress());
+
+		for (const auto& name : NamesStore())
+		{
+			tfm::format(o, "[%06i] %s\n", name.Index, name.AnsiName);
+		}
+	}
+
 	if (Utils::Settings.SdkGen.DumpObjects)
 	{
 		std::ofstream o(path / "ObjectsDump.txt");
@@ -112,17 +123,6 @@ void SdkGenerator::Dump(const fs::path& path)
 		{
 			if (obj.IsValid())
 				tfm::format(o, "[%06i] %-100s 0x%P\n", obj.GetIndex(), obj.GetFullName(), obj.GetAddress());
-		}
-	}
-
-	if (Utils::Settings.SdkGen.DumpNames)
-	{
-		std::ofstream o(path / "NamesDump.txt");
-		tfm::format(o, "Address: 0x%P\n\n", NamesStore::GetAddress());
-
-		for (const auto& name : NamesStore())
-		{
-			tfm::format(o, "[%06i] %s\n", name.Index, name.AnsiName);
 		}
 	}
 }
@@ -148,8 +148,8 @@ void SdkGenerator::ProcessPackages(const fs::path& path, int* pPackagesCount, in
 
 	auto packageObjects =
 		from(ObjectsStore())
-		>> select([](auto && o) { return o.GetPackageObject(); })
-		>> where([](auto && o) { return o.IsValid(); })
+		>> select([](UEObject && o) { return o.GetPackageObject(); })
+		>> where([](UEObject&& o) { return o.IsValid(); })
 		>> distinct()
 		>> to_vector();
 
