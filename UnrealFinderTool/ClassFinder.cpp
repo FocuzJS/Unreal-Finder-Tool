@@ -13,7 +13,7 @@ std::vector<uintptr_t> ClassFinder::Find(const uintptr_t gObjAddress, const uint
 	ObjectsStore::Initialize(gObjAddress, false);
 
 	for (const UEObject& var : FindThatObject(objectType))
-		ret.push_back(reinterpret_cast<uintptr_t>(var.GetAddress()));
+		ret.push_back(var.GetAddress());
 
 	return ret;
 }
@@ -24,7 +24,7 @@ std::vector<UEObject> ClassFinder::FindThatObject(const std::string& typeName, c
 
 	for (size_t i = 0; i < ObjectsStore().GetObjectsNum(); ++i)
 	{
-		const auto& object = ObjectsStore().GetById(i);
+		const auto& object = ObjectsStore().GetByIndex(i);
 
 		if (object.IsA(typeName))
 		{

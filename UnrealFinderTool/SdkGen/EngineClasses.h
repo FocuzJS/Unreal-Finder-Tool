@@ -294,15 +294,18 @@ public:
 		return ObjAddress == NULL && VfTable == NULL;
 	}
 
-	template <typename SdkStruct>
-	SdkStruct Cast() const
+	template <typename USdkStruct>
+	USdkStruct Cast() const
 	{
 		// it's like internal cast, but for remote process
-		SdkStruct castType;
+		USdkStruct castType;
 
-		castType.ObjAddress = ObjAddress;
-		Utils::MemoryObj->Read<SdkStruct>(ObjAddress, castType, sizeof(uintptr_t)); // Skip ObjAddress in UObject
-		castType.FixPointers(sizeof SdkStruct);
+		if (Utils::MemoryObj != nullptr)
+		{
+			castType.ObjAddress = ObjAddress;
+			Utils::MemoryObj->Read<USdkStruct>(ObjAddress, castType, sizeof(uintptr_t)); // Skip ObjAddress in UObject
+			castType.FixPointers(sizeof USdkStruct);
+		}
 
 		return castType;
 	}

@@ -6,7 +6,7 @@
 #include "NamesStore.h"
 
 GObjectInfo ObjectsStore::gInfo;
-std::vector<std::unique_ptr<UEObject>> ObjectsStore::GObjObjects;
+UnsortedMap<size_t, std::unique_ptr<UEObject>> ObjectsStore::GObjObjects;
 int ObjectsStore::maxZeroAddress = 150;
 
 #pragma region ObjectsStore
@@ -116,7 +116,7 @@ bool ObjectsStore::ReadUObjectArrayPnP()
 			}
 			skipCount = 0;
 
-			GObjObjects.push_back(std::move(curObject));
+			GObjObjects.push_back(std::make_pair(curObject->Object.InternalIndex, std::move(curObject)));
 			++gInfo.Count;
 		}
 	}
@@ -160,7 +160,7 @@ bool ObjectsStore::ReadUObjectArrayNormal()
 			}
 			skipCount = 0;
 
-			GObjObjects.push_back(std::move(curObject));
+			GObjObjects.push_back(std::make_pair(curObject->Object.InternalIndex, std::move(curObject)));
 			++gInfo.Count;
 		}
 	}
@@ -200,7 +200,7 @@ size_t ObjectsStore::GetObjectsNum() const
 
 UEObject& ObjectsStore::GetByIndex(const size_t index) const
 {
-	return *GObjObjects[index];
+	return *GObjObjects.Find(index);
 }
 
 UEClass ObjectsStore::FindClass(const std::string& name) const
@@ -208,7 +208,10 @@ UEClass ObjectsStore::FindClass(const std::string& name) const
 	auto findIt = std::find_if(GObjObjects.begin(), GObjObjects.end(), [&](const std::unique_ptr<UEObject>& obj) -> bool { return obj->GetFullName() == name; });
 
 	if (findIt != GObjObjects.end())
-		return (*findIt)->Cast<UEClass>();
+	{
+		auto& item = *findIt->second;
+		return item.Cast<UEClass>();
+	}
 
 	return UEClass();
 	/*
@@ -255,7 +258,7 @@ ObjectsIterator::ObjectsIterator(const ObjectsStore& store, const size_t index)
 	: store(store),
 	index(index)
 {
-	current = store.GetById(index);
+	current = store.GetByIndex(index);
 }
 
 ObjectsIterator::ObjectsIterator(const ObjectsIterator& other)
@@ -289,7 +292,7 @@ ObjectsIterator& ObjectsIterator::operator++()
 {
 	for (++index; index < ObjectsStore(store).GetObjectsNum(); ++index)
 	{
-		current = store.GetById(index);
+		current = store.GetByIndex(index);
 		if (current.IsValid())
 		{
 			break;

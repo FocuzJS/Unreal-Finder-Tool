@@ -29,7 +29,8 @@ class ObjectsStore
 	static bool IsValidUObject(const UEObject& uObject);
 
 public:
-	static std::vector<std::unique_ptr<UEObject>> GObjObjects;
+	static UnsortedMap<size_t, std::unique_ptr<UEObject>> GObjObjects;
+
 	/// <summary>
 	/// Initializes this object.
 	/// </summary>

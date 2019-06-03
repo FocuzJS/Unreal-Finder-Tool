@@ -45,7 +45,7 @@ void Package::Process(std::unordered_map<UEObject, bool>& processedObjects)
 {
 	for (size_t i = 0; i < ObjectsStore().GetObjectsNum(); ++i)
 	{
-		const UEObject& obj = ObjectsStore().GetById(i);
+		const UEObject& obj = ObjectsStore().GetByIndex(i);
 		const auto package = obj.GetPackageObject();
 		if (packageObj == package)
 		{
