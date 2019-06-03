@@ -81,7 +81,6 @@ public:
 		if (it != std::end(cache))
 			return it->second;
 
-		int sleepCounter = 0;
 		size_t count = 0;
 		for (const UEObject& obj : *this)
 		{

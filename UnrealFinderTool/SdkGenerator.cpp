@@ -180,7 +180,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path, int* pPackagesCount, in
 		}
 
 		// Set Sleep Every
-		Utils::Settings.Parallel.SleepEvery = 50;
+		Utils::Settings.Parallel.SleepEvery = 30;
 	}
 
 	++*pPackagesDone;
