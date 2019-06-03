@@ -31,8 +31,10 @@ Download last version from [Here](https://github.com/CorrM/Unreal-Finder-Tool/re
 - Improve `Sdk Generator`.
   - `Sdk Generator` now significantly faster
   - Some organization for `Sdk Generator` code.
-- `Class Finder` now can search for name of address.
-  - Put address of instance and the tool will give you instance `class name`
+- Improve `Class Finder`.
+  - Now can search for `class name` of address.
+    - Put `instance address` and the tool will give you instance `class name`
+  - Now significantly faster.
 
 ##### 01-07-2019
 - Support `GObjects Chunks`.
