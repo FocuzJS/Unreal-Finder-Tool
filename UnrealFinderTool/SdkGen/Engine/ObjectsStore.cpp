@@ -139,7 +139,7 @@ bool ObjectsStore::ReadUObjectArrayNormal()
 			uintptr_t curAddress = chunkAddress + uIndex * (fUObjectItem.StructSize - fUObjectItem.SubUnNeededSize());
 
 			// Read the address as struct
-			if (!fUObjectItem.ReadData(curAddress, "FUObjectItem")) return false;
+			if (!fUObjectItem.ReadData(curAddress, "FUObjectItem")) continue;
 			auto dwUObject = fUObjectItem["Object"].ReadAs<uintptr_t>();
 
 			// Skip null pointer in GObjects array
