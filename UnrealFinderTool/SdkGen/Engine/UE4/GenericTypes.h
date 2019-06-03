@@ -9,8 +9,6 @@
 #include "SdkGen/EngineClasses.h"
 #include "Utils.h"
 
-// TODO: change all Get methods, how it's return
-
 class UEClass;
 
 class UEObject
@@ -30,13 +28,13 @@ public:
 	bool IsValid() const;
 	size_t GetIndex() const;
 
-	UEClass GetClass() const;
-	UEObject& GetOuter() const;
-	UEObject& GetPackageObject() const;
-
 	std::string GetName() const;
 	std::string GetFullName() const;
 	std::string GetNameCPP() const;
+
+	UEClass GetClass() const;
+	UEObject& GetOuter() const;
+	UEObject& GetPackageObject() const;
 
 	template<typename Base>
 	Base Cast() const
@@ -71,17 +69,11 @@ inline bool operator!=(const UEObject& lhs, const UEObject& rhs) { return !(lhs.
 
 class UEField : public UEObject
 {
+	mutable UField objField;
 	mutable UField next;
 
 public:
 	using UEObject::UEObject;
-	mutable UField Object;
-
-	void ReadObject() const
-	{
-		if (Object.Empty())
-			Object = UEObject::Object.Cast<UField>();
-	}
 
 	UEField GetNext() const;
 
@@ -90,15 +82,10 @@ public:
 
 class UEEnum : public UEField
 {
+	mutable UEnum objEnum;
+
 public:
 	using UEField::UEField;
-	mutable UEnum Object;
-
-	void ReadObject() const
-	{
-		if (Object.Empty())
-			Object = UEObject::Object.Cast<UEnum>();
-	}
 
 	std::vector<std::string> GetNames() const;
 
@@ -117,18 +104,12 @@ public:
 
 class UEStruct : public UEField
 {
+	mutable UStruct objStruct;
 	mutable UStruct superField;
 	mutable UField children;
 
 public:
 	using UEField::UEField;
-	mutable UStruct Object;
-
-	void ReadObject() const
-	{
-		if (Object.Empty())
-			Object = UEObject::Object.Cast<UStruct>();
-	}
 
 	UEStruct GetSuper() const;
 
@@ -149,15 +130,10 @@ public:
 
 class UEFunction : public UEStruct
 {
+	mutable UFunction objFunction;
+
 public:
 	using UEStruct::UEStruct;
-	mutable UFunction Object;
-
-	void ReadObject() const
-	{
-		if (Object.Empty())
-			Object = UEObject::Object.Cast<UFunction>();
-	}
 
 	UEFunctionFlags GetFunctionFlags() const;
 
@@ -171,7 +147,6 @@ public:
 
 	static UEClass StaticClass();
 };
-inline UEClass UEClassEmpty; // IsValid Will Return False for it
 
 class UEProperty : public UEField
 {
@@ -189,10 +164,10 @@ public:
 	{
 		PropertyType Type = PropertyType::Unknown;
 		size_t Size = 0;
-		bool CanBeReference = false;
-		std::string CppType;
+		bool CanBeReference;
+		std::string CppType = "";
 
-		static Info Create(const PropertyType type, const size_t size, const bool reference, std::string&& cppType)
+		static Info Create(PropertyType type, size_t size, bool reference, std::string&& cppType)
 		{
 			extern IGenerator* generator;
 
@@ -201,18 +176,12 @@ public:
 	};
 
 private:
+	mutable UProperty objProperty;
 	mutable bool infoChanged = false;
-	mutable Info curInfo{};
+	mutable Info curInfo;
 
 public:
 	using UEField::UEField;
-	mutable UProperty Object;
-
-	void ReadObject() const
-	{
-		if (Object.Empty())
-			Object = UEObject::Object.Cast<UProperty>();
-	}
 
 	size_t GetArrayDim() const;
 
@@ -237,19 +206,13 @@ public:
 
 class UEByteProperty : public UENumericProperty
 {
+	mutable UByteProperty objByteProperty;
 	mutable UEnum enumProperty;
 
 public:
 	using UENumericProperty::UENumericProperty;
-	mutable UByteProperty Object;
 
 	bool IsEnum() const;
-
-	void ReadObject() const
-	{
-		if (Object.Empty())
-			Object = UEObject::Object.Cast<UByteProperty>();
-	}
 
 	UEEnum GetEnum() const;
 
@@ -350,15 +313,10 @@ public:
 
 class UEBoolProperty : public UEProperty
 {
+	mutable UBoolProperty objBoolProperty;
+
 public:
 	using UEProperty::UEProperty;
-	mutable UBoolProperty Object;
-
-	void ReadObject() const
-	{
-		if (Object.Empty())
-			Object = UEObject::Object.Cast<UBoolProperty>();
-	}
 
 	bool IsNativeBool() const { return GetFieldMask() == 0xFF; }
 
@@ -372,14 +330,14 @@ public:
 
 	uint8_t GetFieldMask() const;
 
-	std::array<int, 2> GetMissingBitsCount(const UEBoolProperty& other) const;
+	std::array<int, 2> GetMissingBitsCount(const UEBoolProperty & other) const;
 
 	UEProperty::Info GetInfo() const;
 
 	static UEClass StaticClass();
 };
 
-inline bool operator<(const UEBoolProperty & lhs, const UEBoolProperty & rhs)
+inline bool operator<(const UEBoolProperty& lhs, const UEBoolProperty& rhs)
 {
 	if (lhs.GetByteOffset() == rhs.GetByteOffset())
 	{
@@ -390,17 +348,11 @@ inline bool operator<(const UEBoolProperty & lhs, const UEBoolProperty & rhs)
 
 class UEObjectPropertyBase : public UEProperty
 {
-	mutable UObjectPropertyBase propertyClass{};
+	mutable UObjectPropertyBase objObjectPropertyBase;
+	mutable UObjectPropertyBase propertyClass;
 
 public:
 	using UEProperty::UEProperty;
-	mutable UObjectPropertyBase Object;
-
-	void ReadObject() const
-	{
-		if (Object.Empty())
-			Object = UEObject::Object.Cast<UObjectPropertyBase>();
-	}
 
 	UEClass GetPropertyClass() const;
 
@@ -419,17 +371,11 @@ public:
 
 class UEClassProperty : public UEObjectProperty
 {
-	mutable UClassProperty metaClass{};
+	mutable UClassProperty objClassProperty;
+	mutable UClassProperty metaClass;
 
 public:
 	using UEObjectProperty::UEObjectProperty;
-	mutable UClassProperty Object;
-
-	void ReadObject() const
-	{
-		if (Object.Empty())
-			Object = UEObject::Object.Cast<UClassProperty>();
-	}
 
 	UEClass GetMetaClass() const;
 
@@ -440,17 +386,11 @@ public:
 
 class UEInterfaceProperty : public UEProperty
 {
-	mutable UInterfaceProperty interfaceClass{};
+	mutable UInterfaceProperty objInterfaceProperty;
+	mutable UInterfaceProperty interfaceClass;
 
 public:
 	using UEProperty::UEProperty;
-	mutable UInterfaceProperty Object;
-
-	void ReadObject() const
-	{
-		if (Object.Empty())
-			Object = UEObject::Object.Cast<UInterfaceProperty>();
-	}
 
 	UEClass GetInterfaceClass() const;
 
@@ -491,17 +431,11 @@ public:
 
 class UEAssetClassProperty : public UEAssetObjectProperty
 {
+	mutable UAssetClassProperty objAssetClassProperty;
 	mutable UClass metaClass;
 
 public:
 	using UEAssetObjectProperty::UEAssetObjectProperty;
-	mutable UAssetClassProperty Object;
-
-	void ReadObject() const
-	{
-		if (Object.Empty())
-			Object = UEObject::Object.Cast<UAssetClassProperty>();
-	}
 
 	UEClass GetMetaClass() const;
 
@@ -522,17 +456,11 @@ public:
 
 class UEStructProperty : public UEProperty
 {
-	mutable UStructProperty objStruct{};
+	mutable UStructProperty objStructProperty;
+	mutable UStructProperty objStruct;
 
 public:
 	using UEProperty::UEProperty;
-	mutable UStructProperty Object;
-
-	void ReadObject() const
-	{
-		if (Object.Empty())
-			Object = UEObject::Object.Cast<UStructProperty>();
-	}
 
 	UEScriptStruct GetStruct() const;
 
@@ -563,17 +491,11 @@ public:
 
 class UEArrayProperty : public UEProperty
 {
-	mutable UArrayProperty inner{};
+	mutable UArrayProperty objArrayProperty;
+	mutable UArrayProperty inner;
 
 public:
 	using UEProperty::UEProperty;
-	mutable UArrayProperty Object;
-
-	void ReadObject() const
-	{
-		if (Object.Empty())
-			Object = UEObject::Object.Cast<UArrayProperty>();
-	}
 
 	UEProperty GetInner() const;
 
@@ -584,17 +506,11 @@ public:
 
 class UEMapProperty : public UEProperty
 {
-	mutable UMapProperty keyProp{}, valueProp{};
+	mutable UMapProperty objMapProperty;
+	mutable UMapProperty keyProp, valueProp;
 
 public:
 	using UEProperty::UEProperty;
-	mutable UMapProperty Object;
-
-	void ReadObject() const
-	{
-		if (Object.Empty())
-			Object = UEObject::Object.Cast<UMapProperty>();
-	}
 
 	UEProperty GetKeyProperty() const;
 	UEProperty GetValueProperty() const;
@@ -606,17 +522,11 @@ public:
 
 class UEDelegateProperty : public UEProperty
 {
-	mutable UDelegateProperty signatureFunction{};
+	mutable UDelegateProperty objDelegateProperty;
+	mutable UDelegateProperty signatureFunction;
 
 public:
 	using UEProperty::UEProperty;
-	mutable UDelegateProperty Object;
-
-	void ReadObject() const
-	{
-		if (Object.Empty())
-			Object = UEObject::Object.Cast<UDelegateProperty>();
-	}
 
 	UEFunction GetSignatureFunction() const;
 
@@ -627,17 +537,11 @@ public:
 
 class UEMulticastDelegateProperty : public UEProperty
 {
-	mutable UDelegateProperty signatureFunction{};
+	mutable UDelegateProperty objDelegateProperty;
+	mutable UDelegateProperty signatureFunction;
 
 public:
 	using UEProperty::UEProperty;
-	mutable UDelegateProperty Object; // DelegateProperty
-
-	void ReadObject() const
-	{
-		if (Object.Empty())
-			Object = UEObject::Object.Cast<UDelegateProperty>();
-	}
 
 	UEFunction GetSignatureFunction() const;
 
@@ -648,21 +552,14 @@ public:
 
 class UEEnumProperty : public UEProperty
 {
-	mutable UEnumProperty underlyingProp{};
-	mutable UEnumProperty Enum{};
+	mutable UEnumProperty objEnumProperty;
+	mutable UEnumProperty underlyingProp;
+	mutable UEnumProperty Enum;
 
 public:
 	using UEProperty::UEProperty;
-	mutable UEnumProperty Object;
-
-	void ReadObject() const
-	{
-		if (Object.Empty())
-			Object = UEObject::Object.Cast<UEnumProperty>();
-	}
 
 	UENumericProperty GetUnderlyingProperty() const;
-
 	UEEnum GetEnum() const;
 
 	UEProperty::Info GetInfo() const;
@@ -686,4 +583,4 @@ bool UEObject::IsA() const
 	}
 
 	return false;
-} 
+}

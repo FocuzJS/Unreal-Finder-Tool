@@ -16,12 +16,20 @@ public:
 		this->assign(begin, end);
 	}
 
+	UnsortedMapIt find(const K& ref)
+	{
+		return std::find_if(this->begin(), this->end(), [ref](const std::pair<K, V>& vecItem)
+		{
+			return vecItem.first == ref;
+		});
+	}
+
 	V& Find(const K& ref, bool& success)
 	{
 		auto it = std::find_if(this->begin(), this->end(), [&](const std::pair<K, V>& vecItem) -> bool
-			{
-				return vecItem.first == ref;
-			});
+		{
+			return vecItem.first == ref;
+		});
 
 		success = it != this->end();
 		return it->second;

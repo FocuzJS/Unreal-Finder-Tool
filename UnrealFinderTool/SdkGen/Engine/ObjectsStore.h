@@ -58,7 +58,7 @@ public:
 	/// <summary>
 	/// Gets the object by id.
 	/// </summary>
-	/// <param name="objAddress">The address of object, can be also outer of class.</param>
+	/// <param name="objAddress">The address of object.</param>
 	/// <returns>The object.</returns>
 	UEObject& GetByAddress(uintptr_t objAddress) const;
 

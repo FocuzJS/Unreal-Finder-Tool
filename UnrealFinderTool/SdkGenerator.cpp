@@ -148,7 +148,7 @@ void SdkGenerator::ProcessPackages(const fs::path& path, int* pPackagesCount, in
 
 	auto packageObjects =
 		from(ObjectsStore())
-		>> select([](UEObject && o) { return o.GetPackageObject(); })
+		>> select([](UEObject&& o) { return o.GetPackageObject(); })
 		>> where([](UEObject&& o) { return o.IsValid(); })
 		>> distinct()
 		>> to_vector();

@@ -207,13 +207,11 @@ UEObject& ObjectsStore::GetByAddress(const uintptr_t objAddress) const
 
 UEClass ObjectsStore::FindClass(const std::string& name) const
 {
-	for (const UEObject& obj : *this)
-	{
-		if (obj.GetFullName() == name)
-		{
-			return obj.Cast<UEClass>();
-		}
-	}
+	auto it = std::find_if(this->begin(), this->end(), [&](const UEObject& obj) -> bool { return obj.GetFullName() == name; });
+
+	if (it != this->end())
+		return (*it).Cast<UEClass>();
+
 	return UEClass();
 }
 #pragma endregion
