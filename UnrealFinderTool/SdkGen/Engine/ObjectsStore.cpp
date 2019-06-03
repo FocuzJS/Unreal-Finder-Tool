@@ -205,16 +205,6 @@ UEObject& ObjectsStore::GetByIndex(const size_t index) const
 
 UEClass ObjectsStore::FindClass(const std::string& name) const
 {
-	auto findIt = std::find_if(GObjObjects.begin(), GObjObjects.end(), [&](const std::unique_ptr<UEObject>& obj) -> bool { return obj->GetFullName() == name; });
-
-	if (findIt != GObjObjects.end())
-	{
-		auto& item = *findIt->second;
-		return item.Cast<UEClass>();
-	}
-
-	return UEClass();
-	/*
 	for (const UEObject& obj : *this)
 	{
 		if (obj.GetFullName() == name)
@@ -223,7 +213,6 @@ UEClass ObjectsStore::FindClass(const std::string& name) const
 		}
 	}
 	return UEClass();
-	*/
 }
 #pragma endregion
 
